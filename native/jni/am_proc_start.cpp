@@ -26,7 +26,7 @@ int myself;
 #define PROPMIRR string(string(MAGISKTMP) + "/.magisk/modules/" + string(MODNAME) + "/module.prop").data()
 #define ___write(text) if (MAGISKTMP) __write_module_status(text, PROPFILE, PROPMIRR)
 
-const char *MAGISKTMP = nullptr;
+extern const char *MAGISKTMP = nullptr;
 char *MODPATH = nullptr;
 char *MODNAME = nullptr;
 vector<string> module_list;
@@ -109,8 +109,8 @@ int run_script(const char *arg1, const char *arg2, const char *arg3, const char 
     }
 }
 
-void run_daemon(int pid, int uid, const char *process, int user){
-    if (fork_dont_care()==0){
+void run_scripts(int pid, int uid, const char *process, int user) {
+    do {
         struct stat ppid_st, pid_st;
         char pid_str[10];
         char uid_str[10];
@@ -137,16 +137,16 @@ void run_daemon(int pid, int uid, const char *process, int user){
         // if there is no script we want to run in app mount namespace
         if (module_run.size() < 1) {
             LOGI("no module to run EnterMntNs [%s] pid=[%d]", process, pid);
-            _exit(0);
+            return;
         }
         do {
             if (i>=300000) {
                 LOGW("timeout for wait EnterMntNs [%s] pid=[%d], the mount namespace is not unshared!", process, pid);
-                _exit(0);
+                return;
             }
             if (read_ns(pid,&pid_st) == -1 ||
                 read_ns(parse_ppid(pid),&ppid_st) == -1)
-                _exit(0);
+                return;
             usleep(10);
             i++;
         } while (pid_st.st_ino == ppid_st.st_ino &&
@@ -194,6 +194,14 @@ void run_daemon(int pid, int uid, const char *process, int user){
         }
         unblock_process:
         kill(pid, SIGCONT);
+        return;
+    } while (false);
+}
+
+
+void run_daemon(int pid, int uid, const char *process, int user){
+    if (fork_dont_care()==0){
+        run_scripts(pid,uid,process,user);
         _exit(0);
     }
 }

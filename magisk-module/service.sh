@@ -1,3 +1,5 @@
+exit 0
+
 MODDIR="${0%/*}"
 MODNAME="${MODDIR##*/}"
 MAGISKTMP="$(magisk --path)" || MAGISKTMP=/sbin
