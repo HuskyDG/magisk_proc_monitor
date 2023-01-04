@@ -5,6 +5,7 @@ LOCAL_MODULE := proc_monitor
 LOCAL_SRC_FILES := am_proc_start.cpp base.cpp cus.cpp zygisk.cpp
 LOCAL_STATIC_LIBRARIES := libcxx
 LOCAL_LDLIBS := -llog
-include $(BUILD_SHARED_LIBRARY)
+LOCAL_LDFLAGS := -Wl,--dynamic-list=jni/exported_sym.txt
+include $(BUILD_EXECUTABLE)
 
 include jni/libcxx/Android.mk
