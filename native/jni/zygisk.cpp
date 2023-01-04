@@ -12,7 +12,7 @@ using zygisk::Api;
 using zygisk::AppSpecializeArgs;
 using zygisk::ServerSpecializeArgs;
 
-void run_daemon(int pid, int uid, const char *process, int user);
+void run_scripts(bool zygisk, int pid, int uid, const char *process, int _user);
 void prepare_modules();
 extern const char *MAGISKTMP;
 static bool module_loaded = false;
@@ -80,8 +80,11 @@ static void companion_handler(int i) {
     read(i, &pid, sizeof(int));
     read(i, &uid, sizeof(int));
     read(i, process, sizeof(process));
+    int _user = uid / 100000;
+	if (module_loaded) {
+        run_scripts(true, pid, uid, process, _user);
+	}
     write(i, &done, sizeof(int));
-    int user = uid / 100000;
     LOGD("companion_handler: [%s] PID=[%d] UID=[%d]\n", process, pid, uid);
     if (strcmp(process,"system_server") == 0 && pid == 0 && uid == 0 && !module_loaded){
         char buf[256];
@@ -94,9 +97,6 @@ static void companion_handler(int i) {
         }
         return;
     }
-	if (module_loaded) {
-        run_daemon(pid, uid, process, user);
-	}
 }
 
 REGISTER_ZYGISK_MODULE(DynMount)
