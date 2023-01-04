@@ -43,7 +43,6 @@ private:
 
     void preSpecialize(const char *process, int uid) {
         // Demonstrate connecting to to companion process
-        unshare(CLONE_NEWNS);
         int r = 0;
         int fd = api->connectCompanion();
         int pid = getpid();
